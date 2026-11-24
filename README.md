@@ -1,5 +1,7 @@
 # CritLink: Simulated EHR for Critical Value Notification
 
+**🔗 Live demo: [ehrclonev1-gonn.vercel.app](https://ehrclonev1-gonn.vercel.app)**
+
 > ⚠️ **Simulated data only. Not for clinical use.** All patients and staff are fictional.
 
 A demo EHR-style app. A clinical lab tech sees simulated **critical lab values** and
@@ -55,6 +57,9 @@ npm run build
 ```
 
 ## Deploy to Vercel
+
+The live demo is deployed at **https://ehrclonev1-gonn.vercel.app**.
+
 
 1. In Vercel, **Add New → Project → Import** `3PensRBB/EHR_Clone_v1`. The framework is auto-detected as Next.js, and no build settings need changing.
 2. No database or secrets are needed. State lives in each viewer's browser.
