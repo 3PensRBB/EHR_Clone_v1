@@ -1,7 +1,52 @@
 # Technical Plan — CritLink
 
-Companion to [PRD.md](./PRD.md). Describes the stack, data model, architecture,
-and the phased build through Vercel deployment.
+Companion to [PRD.md](./PRD.md).
+
+## 0. As built (v0.1): no database
+
+Decisions confirmed for the first build:
+- **No database yet.** State lives in the browser (localStorage) and syncs across tabs, so the
+  two-window demo (lab tech + physician) works on Vercel with zero infrastructure.
+- **SLA is always 30 minutes** from result verification (`SLA_MINUTES` in `src/lib/domain/constants.ts`).
+- **Two recipient policies:** `physician_only` and `physician_and_nurse`, switchable in-app or pinned per
+  deployment with `NEXT_PUBLIC_RECIPIENT_POLICY`.
+
+### Layering
+
+```
+UI (src/app/*, src/components/*)
+   │  useSim() / useNow() / repo.dispatch(command)
+   ▼
+CritLinkRepository  (src/lib/data/repository.ts)      ← the only persistence boundary
+   │  today: LocalStorageRepository (browser)
+   │  later: ApiRepository → POST /api/commands + realtime subscription
+   ▼
+Command engine  applyCommand(state, command, ctx)   (src/lib/domain/engine.ts)
+   │  pure: no I/O, no globals, deterministic given ctx {now, rand, newId}
+   ▼
+Domain logic  coverage.ts · sla.ts · readback.ts · metrics.ts · selectors.ts   (unit-tested)
+```
+
+Every change is a typed `Command` (`generate`, `notify`, `markRead`, `reply`, `acknowledge`,
+`logPhone`, `updateSettings`, `setRecipientPolicy`, `setClockSpeed`, `advanceClock`, `tick`).
+Components never mutate state directly.
+
+### Adding a database later
+
+The domain types in `src/lib/domain/types.ts` are already flat, table-shaped records with id
+foreign keys, matching the data model in §3 below. To add Postgres:
+
+1. Create tables from `types.ts` (Drizzle schema). `SimState` arrays map to tables.
+2. Add `src/app/api/commands/route.ts`. Load the needed rows, run the **same** `applyCommand`, and write
+   the diff in a transaction. Add a Vercel Cron job (or check-on-read) that runs the `tick` command server-side.
+3. Implement `ApiRepository` (the same `CritLinkRepository` interface). `dispatch` POSTs the command,
+   and `subscribe` listens to Supabase Realtime / Pusher.
+4. Swap the class in `src/lib/data/store.tsx`. No component changes are needed.
+5. Move the simulator-only fields (`autoAckAt`, demo clock) behind a `DEMO_MODE` flag.
+
+---
+
+*The sections below are the original target plan. They still describe the database-backed version.*
 
 ## 1. Recommended stack
 

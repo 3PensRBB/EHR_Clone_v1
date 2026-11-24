@@ -173,4 +173,4 @@ In the demo, a **role switcher** lets one presenter act as each persona.
 - **"Message sent" ≠ "notified."** Regulation requires a read-back by a responsible caregiver. The design treats only **acknowledged + read-back** as complete.
 - **Coverage data accuracy.** If the schedule is wrong, the right person is never reached. Escalation is the safety net.
 - **Alert fatigue** for physicians. Use clear structured messages and one thread per critical value.
-- **Open:** SLA 30 minutes everywhere, or per test or priority? Can nurses be valid recipients (many policies allow the RN)? Which escalation default to use?
+- **Resolved (v0.1):** The SLA is always 30 minutes. Nurses can be recipients in a separate "Physician + RN" version; the "Physician-only" version blocks them. Escalation is prompted after 10 minutes without acknowledgment. There is no database for now, and the architecture is ready for one (see TECHNICAL_PLAN §0).
